@@ -1,5 +1,8 @@
 <template>
-  <div class="home">
+  <div v-if="loading">
+    <h3>Loading...</h3>
+  </div>
+  <div class="home" v-else>
     <Todos v-bind:todos="todos" v-on:del-todo="deleteTodo" v-on:add-todo="addTodo" />
   </div>
 </template>
@@ -15,7 +18,8 @@ export default {
   },
   data() {
     return {
-      todos: []
+      todos: [],
+      loading: true
     };
   },
   methods: {
@@ -32,7 +36,9 @@ export default {
   created() {
     Axios.get("/todos")
       .then(res => (this.todos = res.data))
-      .catch(err => console.log(err));
+      .catch(err => console.log(err))
+      .finally(() => (this.loading = false));
   }
 };
 </script>
+
