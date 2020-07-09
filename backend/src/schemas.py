@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 class TodoPost(BaseModel):
     title: str
-    completed: bool
+    completed: bool = False
 
 
 class Todo(TodoPost):
