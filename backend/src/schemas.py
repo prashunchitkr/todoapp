@@ -8,3 +8,8 @@ class TodoPost(BaseModel):
 
 class Todo(TodoPost):
     id: int
+
+
+class User(BaseModel):
+    username: str
+    password: str

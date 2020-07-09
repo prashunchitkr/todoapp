@@ -1,17 +1,19 @@
 from typing import List
 
-from fastapi import Depends, BackgroundTasks
+from fastapi import BackgroundTasks, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from .models import SessionLocal
+from . import models, schemas
 from .app import app, get_db
-from . import models
-from . import schemas
-from .tasks import task_todo_create
+from .tasks import task_todo_create, task_user_create
+from .auth import get_current_user, authenticate_user, create_access_token
 
 
 @app.get('/todos')
-def get_todos(db: Session = Depends(get_db)) -> List[schemas.Todo]:
+def get_todos(db: Session = Depends(get_db),
+              user: models.User = Depends(get_current_user)) -> List[
+                  schemas.Todo]:
     '''
     Returns all the todos available in the database
     '''
@@ -23,7 +25,8 @@ def get_todos(db: Session = Depends(get_db)) -> List[schemas.Todo]:
 async def create_todo(
     todo: schemas.TodoPost,
     background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user: models.User = Depends(get_current_user)
 ) -> schemas.Todo:
     '''
     Creates a todo item and adds it to the dictionary
@@ -33,7 +36,9 @@ async def create_todo(
 
 
 @app.delete('/todos/{id}')
-async def delete_todo(id: int, db: Session = Depends(get_db)):
+async def delete_todo(id: int,
+                      db: Session = Depends(get_db),
+                      user: models.User = Depends(get_current_user)):
     '''
     Delete a model from the database
     '''
@@ -48,7 +53,8 @@ async def delete_todo(id: int, db: Session = Depends(get_db)):
 @app.put('/todos/{id}')
 async def update_todo(id: int,
                       todo: schemas.TodoPost,
-                      db: Session = Depends(get_db)):
+                      db: Session = Depends(get_db),
+                      user: models.User = Depends(get_current_user)):
     '''
     Update the object in database
     '''
@@ -60,3 +66,22 @@ async def update_todo(id: int,
         return {'code': 'success'}
 
     return {'code': 'error'}
+
+
+@app.post('/user')
+async def create_user(user: schemas.User,
+                      background_tasks: BackgroundTasks,
+                      curr_user: models.User = Depends(get_current_user)):
+    background_tasks.add_task(task_user_create, user)
+    return {'status': 'success'}
+
+
+@app.post('/token')
+def login(form_data: OAuth2PasswordRequestForm = Depends(),
+          db: Session = Depends(get_db)):
+    user = authenticate_user(form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(status_code=400,
+                            detail="Incorrect username or password")
+    token = create_access_token({'username': user.dict().get('username')})
+    return {'access_token': token, 'token_type': 'bearer'}
