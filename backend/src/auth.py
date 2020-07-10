@@ -23,15 +23,17 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     )
     try:
         payload = jwt.decode(token, APP_SECRET)
-        username: str = payload.get('username')
-        print(payload, username)
+        username: str = payload.get('sub')
         if username is None:
             raise credentials_exception
+
+        if datetime.utcnow().timestamp() > payload.get('expires'):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                                detail="Expired Token")
     except PyJWTError:
         raise credentials_exception
 
     user = get_user(username)
-
     if not user:
         raise credentials_exception
 

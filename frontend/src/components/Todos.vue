@@ -1,8 +1,8 @@
 <template>
   <div>
-    <AddTodo v-on:add-todo="newTodo => this.$emit('add-todo', newTodo)" />
+    <AddTodo />
     <div v-for="todo in todos" v-bind:key="todo.id">
-      <TodoItem v-bind:todo="todo" v-on:del-todo="$emit('del-todo', todo.id)" />
+      <TodoItem v-bind:todo="todo" />
     </div>
   </div>
 </template>
@@ -10,14 +10,15 @@
 <script>
 import TodoItem from "./TodoItem";
 import AddTodo from "./AddTodo";
+import { mapState } from "vuex";
 
 export default {
   name: "Todos",
-  props: ["todos"],
   components: {
     TodoItem,
     AddTodo
-  }
+  },
+  computed: mapState(["todos"])
 };
 </script>
 

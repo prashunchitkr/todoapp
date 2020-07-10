@@ -22,9 +22,8 @@ export default {
         title: this.title,
         completed: false
       };
-      console.log(newTodo);
       this.title = "";
-      this.$emit("add-todo", newTodo);
+      this.$store.dispatch("addTodo", newTodo);
     }
   }
 };

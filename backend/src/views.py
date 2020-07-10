@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from . import models, schemas
 from .app import app, get_db
 from .tasks import task_todo_create, task_user_create
-from .auth import get_current_user, authenticate_user, create_access_token
+from .auth import get_current_user, authenticate_user, create_access_token, oauth2_scheme
 
 
 @app.get('/todos')
@@ -43,8 +43,8 @@ async def delete_todo(id: int,
     Delete a model from the database
     '''
     q = db.query(models.Todo).get(id)
-    if q.first():
-        q.delete()
+    if q:
+        db.delete(q)
         db.commit()
         return {'code': 'success'}
     return {'code': 'error'}
@@ -69,9 +69,7 @@ async def update_todo(id: int,
 
 
 @app.post('/user')
-async def create_user(user: schemas.User,
-                      background_tasks: BackgroundTasks,
-                      curr_user: models.User = Depends(get_current_user)):
+async def create_user(user: schemas.User, background_tasks: BackgroundTasks):
     background_tasks.add_task(task_user_create, user)
     return {'status': 'success'}
 
@@ -81,7 +79,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(),
           db: Session = Depends(get_db)):
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
-        raise HTTPException(status_code=400,
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Incorrect username or password")
-    token = create_access_token({'username': user.dict().get('username')})
+    token = create_access_token({'sub': user.dict().get('username')})
     return {'access_token': token, 'token_type': 'bearer'}

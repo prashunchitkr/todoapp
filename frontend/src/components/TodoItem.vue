@@ -3,21 +3,22 @@
     <p>
       <input type="checkbox" @change="markComplete" v-bind:checked="todo.completed ? true : false" />
       {{todo.title}}
-      <button class="del" @click="$emit('del-todo', todo.id)">x</button>
+      <button class="del" @click="deleteTodo">x</button>
     </p>
   </div>
 </template>
 
 <script>
-import { Axios } from "../Api";
-
 export default {
   name: "TodoItem",
   props: ["todo"],
   methods: {
     markComplete() {
       this.todo.completed = !this.todo.completed;
-      Axios.put(`/todos/${this.todo.id}`, this.todo).catch(e => console.log(e));
+      this.$store.dispatch("updateTodo", this.todo);
+    },
+    deleteTodo() {
+      this.$store.dispatch("deleteTodo", this.todo.id);
     }
   }
 };
