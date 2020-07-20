@@ -1,6 +1,5 @@
-from typing import Optional
-
 from datetime import datetime, timedelta
+from typing import Optional
 
 import jwt
 from fastapi import Depends, HTTPException, status

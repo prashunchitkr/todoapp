@@ -22,6 +22,18 @@ Axios.interceptors.request.use(
   }
 );
 
+Axios.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response.status == 401) {
+      store.dispatch("logout");
+      router.push("/login");
+    }
+  }
+);
+
 router.beforeEach((to, from, next) => {
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (!store.getters.loggedIn) {

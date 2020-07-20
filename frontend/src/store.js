@@ -67,6 +67,9 @@ const store = new Vuex.Store({
     updateTodo(context, todo) {
       Axios.put(`/todos/${todo.id}`, todo);
     },
+    logout(context) {
+      context.commit("logout");
+    },
   },
 });
 
