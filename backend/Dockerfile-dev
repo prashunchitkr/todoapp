@@ -13,4 +13,4 @@ RUN pip install psycopg2-binary
 
 EXPOSE 3000
 
-CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "3000"]
+CMD ["uvicorn", "src.app:app", "--reload", "--host", "0.0.0.0", "--port", "3000"]
